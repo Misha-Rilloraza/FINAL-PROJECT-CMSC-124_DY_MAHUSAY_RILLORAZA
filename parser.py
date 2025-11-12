@@ -164,7 +164,7 @@ class Parser:
 
     def parse_logical_and(self):
         left = self.parse_comparison()
-        while self.current_token and self.current_token['pattern'] in ["BOTH OF", "ALL OF"]:
+        while self.current_token and self.current_token['pattern'] in ["BOTH OF", "EITHER OF", "WON OF", "ANY OF", "ALL OF"]:
             operator = self.current_token['pattern']
             self.advance()
             right = self.parse_comparison()
@@ -178,7 +178,7 @@ class Parser:
 
     def parse_comparison(self):
         left = self.parse_arithmetic()
-        while self.current_token and self.current_token['pattern'] in ["BOTH SAEM", "DIFFRINT", "BIGGR OF", "SMALLR OF"]:
+        while self.current_token and self.current_token['pattern'] in ["BIGGR OF", "SMALLR OF", "BOTH SAEM", "DIFFRINT", ]:
             operator = self.current_token['pattern']
             self.advance()
             right = self.parse_arithmetic()
@@ -224,9 +224,11 @@ class Parser:
             return None
         
         # Handle arithmetic operations at the factor level
-        if self.current_token['pattern'] in ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", 
-                                           "BIGGR OF", "SMALLR OF", "BOTH SAEM", "DIFFRINT"]:
+        if self.current_token['pattern'] in ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF"]:
             return self.parse_arithmetic_operation()
+        
+        if self.current_token['pattern'] in ["BIGGR OF", "SMALLR OF", "BOTH SAEM", "DIFFRINT"]:
+            return self.parse_comparison_operation()
         
         # Handle boolean literals (WIN and FAIL)
         if self.current_token['token_name'] == "Boolean Literal":
@@ -307,6 +309,28 @@ class Parser:
             'operand1': operand1,
             'operand2': operand2
         }
+    
+    def parse_comparison_operation(self):
+        """Parse arithmetic operations like SUM OF expr AN expr"""
+        operator = self.current_token['pattern']
+        self.advance()  # consume operator
+        
+        # Parse first operand
+        operand1 = self.parse_expression()
+        
+        # Expect AN
+        if self.current_token and self.current_token['pattern'] == "AN":
+            self.advance()  # consume AN
+        
+        # Parse second operand
+        operand2 = self.parse_expression()
+        
+        return {
+            'type': 'comparison_operation',
+            'operator': operator,
+            'operand1': operand1,
+            'operand2': operand2
+        }
 
 def parse(filename):
     """Main parsing function"""
@@ -382,8 +406,8 @@ def print_ast(node, indent=0):
     
     elif node_type == 'comparison_operation':
         print(f"{prefix}Comparison Operation: {node['operator']}")
-        print_ast(node['left'], indent + 1)
-        print_ast(node['right'], indent + 1)
+        print_ast(node['operand1'], indent + 1)
+        print_ast(node['operand2'], indent + 1)
     
     elif node_type == 'logical_operation':
         print(f"{prefix}Logical Operation: {node['operator']}")
@@ -394,8 +418,7 @@ def print_ast(node, indent=0):
         print(f"{prefix}Unknown node: {node}")
 
 if __name__ == "__main__":
-    import sys
-    filename = sys.argv[1] if len(sys.argv) > 1 else "t1.lol"
+    filename = "t1.lol"
     
     print("=" * 60)
     print(f"PARSING: {filename}")
