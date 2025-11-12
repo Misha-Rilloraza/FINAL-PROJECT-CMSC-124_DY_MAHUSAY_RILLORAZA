@@ -12,13 +12,14 @@ def tokenizer(filename):
     # combine the patterns (lexeme)
     token_patterns = []
     token_patterns.extend(keywords)
+    token_patterns.append((r"\b[a-zA-Z][a-zA-Z0-9_]*\b", "Variable Identifier"))
+
     token_patterns.append((r'"(?:[^"\\\r\n]|\\.)*"', "String Literal"))
     token_patterns.append((r"\"", "String Delimiter"))
     token_patterns.append((r"\b[+-]?[0-9]*\.[0-9]+\b", "Float Literal"))
     token_patterns.append((r"\b[+-]?[0-9]+\b", "Integer Literal"))
     token_patterns.append((r"\b(WIN|FAIL)\b", "Boolean Literal"))
     token_patterns.append((r"\b(NOOB|NUMBR|NUMBAR|YARN|TROOF)\b", "Type Literal"))
-    token_patterns.append((r"\b[a-zA-Z][a-zA-Z0-9_]*\b", "Variable Identifier"))
 
     # simpler regex combining
     combined_regex = "|".join(f"({pattern})" for pattern, _ in token_patterns)
@@ -66,15 +67,15 @@ def tokenizer(filename):
 
     # itsura ng pagkagroup
     # print(tokens)
-    # for token in tokens:
-    #     print(f"Line {token['line_number']}:Column {token['column_number']} {token['token_name']} {token['pattern']}")
+    for token in tokens:
+        print(f"Line {token['line_number']}:Column {token['column_number']} {token['token_name']} {token['pattern']}")
     return tokens
 
 # test (print like dun sa sample results)
 # for token in tokens:
 #     print(f"Line {token['line_number']}:Column {token['column_number']} {token['token_name']} {token['pattern']}")
 
-if __name__ == "__main__":
-    tokens = tokenizer("t1.lol")
-    for token in tokens:
-        print(f"Line {token['line_number']}, Column {token['column_number']}: {token['token_name']} {token['pattern']}")
+# if __name__ == "__main__":
+#     tokens = tokenizer("t1.lol")
+#     for token in tokens:
+#         print(f"Line {token['line_number']}, Column {token['column_number']}: {token['token_name']} {token['pattern']}")
