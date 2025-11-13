@@ -22,7 +22,7 @@ class Parser:
             return self.tokens[self.token_index + 1]
         return None
 
-    def expect(self, token_type, value=None):
+    def error_handle(self, token_type, value=None):
         """Expect a specific token type and optionally value"""
         if self.current_token and self.current_token['token_name'] == token_type:
             if value is None or self.current_token['pattern'] == value:
@@ -50,8 +50,11 @@ class Parser:
         print("Parsing program...")
         
         # Expect HAI at beginning
-        self.expect("Code Delimeter", "HAI")
+        self.error_handle("Code Delimeter", "HAI")
         
+        # sa bawat statement
+        # dito mapupunta ung breakdown ng keywords
+        # tapos iaarrange into a tree for easier analysis
         statements = []
         while self.current_token and self.current_token['pattern'] != "KTHXBYE":
             if self.current_token['pattern'] == "WAZZUP":
@@ -62,7 +65,7 @@ class Parser:
                     statements.append(statement)
         
         # Expect KTHXBYE at end
-        self.expect("Code Delimeter", "KTHXBYE")
+        self.error_handle("Code Delimeter", "KTHXBYE")
         
         return {
             'type': 'program',
@@ -92,7 +95,7 @@ class Parser:
     def parse_variable_block(self):
         """WAZZUP variable_declarations BUHBYE"""
         print("Parsing variable block...")
-        self.expect("Variable List Delimeter", "WAZZUP")
+        self.error_handle("Variable List Delimeter", "WAZZUP")
         
         declarations = []
         while self.current_token and self.current_token['pattern'] != "BUHBYE":
@@ -103,7 +106,7 @@ class Parser:
             else:
                 self.advance()
         
-        self.expect("Variable List Delimeter", "BUHBYE")
+        self.error_handle("Variable List Delimeter", "BUHBYE")
         return {
             'type': 'variable_block',
             'declarations': declarations
@@ -111,9 +114,9 @@ class Parser:
 
     def parse_variable_declaration(self):
         """I HAS A identifier (ITZ expression)?"""
-        self.expect("Variable Declaration", "I HAS A")
+        self.error_handle("Variable Declaration", "I HAS A")
         
-        identifier = self.expect("Variable Identifier")
+        identifier = self.error_handle("Variable Identifier")
         
         # Optional assignment with ITZ
         initial_value = None
@@ -129,7 +132,7 @@ class Parser:
 
     def parse_output_statement(self):
         """VISIBLE expression+"""
-        self.expect("Output Keyword", "VISIBLE")
+        self.error_handle("Output Keyword", "VISIBLE")
         
         expressions = []
         while (self.current_token and 
@@ -272,7 +275,7 @@ class Parser:
         elif self.current_token['pattern'] == "(":
             self.advance()  # consume (
             expr = self.parse_expression()
-            self.expect(")", ")")
+            self.error_handle(")", ")")
             return expr
         
         # Handle unary NOT
@@ -418,7 +421,7 @@ def print_ast(node, indent=0):
         print(f"{prefix}Unknown node: {node}")
 
 if __name__ == "__main__":
-    filename = "t1.lol"
+    filename = "t5.lol"
     
     print("=" * 60)
     print(f"PARSING: {filename}")
